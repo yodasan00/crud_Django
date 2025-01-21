@@ -20,6 +20,7 @@ from rest_framework import viewsets
 from rest_framework.exceptions import ValidationError,PermissionDenied
 from rest_framework.permissions import AllowAny
 import logging
+from django.contrib.auth import update_session_auth_hash
 
 
 '''(note for self)perform_create()-Automatically associate the logged-in user's license_details with the license_details field in the serializer of the respective related models
@@ -58,14 +59,10 @@ def login_user(request):
         
         if user is not None:
             login(request, user)
+            
+            user.user_details.user_status = True
+            user.user_details.save()
 
-
-            try:
-                user.user_details.user_status = True
-                user.user_details.save()
-            except AttributeError:
-                return JsonResponse({"error": "User details not found for the user /enter user_details."}, status=404)
-            # Create or retrieve the token for the authenticated user
             token, created = Token.objects.get_or_create(user=user)
             return JsonResponse({"token": token.key}, status=200)
         else:
@@ -73,6 +70,7 @@ def login_user(request):
             return JsonResponse({"error": "Incorrect password."}, status=400)
     
     else:
+        # return render(request,"registration/log.html")
         return JsonResponse({"error": "Invalid request method."}, status=405) 
 @login_required
 
@@ -384,3 +382,28 @@ class VerifyOTPView(APIView):
         except OTPVerification.DoesNotExist:
             logger.error("Invalid or expired OTP.")
             return Response({"error": "Invalid or expired OTP."}, status=status.HTTP_400_BAD_REQUEST)
+        
+
+
+class ChangePasswordView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        old_password = request.data.get('old_password')
+        new_password = request.data.get('new_password')
+        confirm_password = request.data.get('confirm_password')
+
+        if new_password != confirm_password: #check new and confirm pass same
+            return Response({'error': 'Passwords do not match'}, status=400)
+
+        if not request.user.check_password(old_password): #check if the old password is correct or not :-()
+            return Response({'error': 'Old password is incorrect'}, status=400)
+
+        request.user.set_password(new_password)
+        request.user.save()
+
+            # Keep the user logged in after password change
+        update_session_auth_hash(request, request.user)
+
+        return Response({'success': 'Password changed successfully'}, status=200)
+           
