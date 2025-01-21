@@ -5,7 +5,7 @@ from django.urls import path
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from .views import CreateOTPView, VerifyOTPView,  LicenseDetailsSerializerViewset, MGQDetailsViewSet, AddressDetailsViewSet,UnitDetailsViewSet,MemberDetailViewSet
-
+from .views import ChangePasswordView
 
 
 
@@ -21,7 +21,7 @@ urlpatterns = [
     path('login/',views.login_user,name='login'),
     path('otp/create/', CreateOTPView.as_view(), name='create-otp'),
     path('otp/verify/', VerifyOTPView.as_view(), name='verify-otp'),
-
+    path('login/change-password/', ChangePasswordView.as_view(), name='change_password'),
     path('', include(router.urls)),
  
 
