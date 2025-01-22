@@ -331,6 +331,7 @@ class CreateOTPView(APIView):
 
             try:
                 send_mail(subject, message, from_email, recipient_list)
+                print(otp_code)
             except Exception as e:
                 return Response({"error": f"Failed to send email: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
