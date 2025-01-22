@@ -142,8 +142,6 @@ EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'pushkarraj192003@gmail.com'
 EMAIL_HOST_PASSWORD = 'ychxobsadzpoxxfs' # note to me:2 step must be on 
 
-# settings.py
-
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework.authentication.TokenAuthentication',  # Token authentication
