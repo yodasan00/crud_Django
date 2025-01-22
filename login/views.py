@@ -20,6 +20,8 @@ from rest_framework import viewsets
 from rest_framework.exceptions import ValidationError,PermissionDenied
 from rest_framework.permissions import AllowAny
 import logging
+import json
+
 
 
 '''(note for self)perform_create()-Automatically associate the logged-in user's license_details with the license_details field in the serializer of the respective related models
@@ -44,9 +46,15 @@ class LicenseDetailsMixin:
 def login_user(request):
     permission_classes = [AllowAny]
     if request.method == "POST":
-        username = request.POST["username"]
-        password = request.POST["password"]
-        
+        print("Raw request body:", request.body)  # Logs raw request data
+        try:
+            data = json.loads(request.body.decode('utf-8'))  # Decode JSON
+            print("Parsed data:", data)
+            username = data.get("username")
+            password = data.get("password")
+        except json.JSONDecodeError:
+            return JsonResponse({"error": "Invalid JSON format"}, status=400)
+
         try:
             user = User.objects.get(username=username)
         except User.DoesNotExist:
@@ -87,14 +95,16 @@ class UserViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
     authentication_classes = [TokenAuthentication]
     def create(self, request, *args, **kwargs):
-        
+        '''only admin is allowed to create a user''' 
         if not request.user.is_staff:  
             return Response({"error": "You do not have permission to create a user."},
                             status=status.HTTP_403_FORBIDDEN)
 
         
         return super().create(request, *args, **kwargs)
-   
+    
+    def get_queryset(self):
+        return User.objects.filter(id=self.request.user.id)
    
 
 class UserDetailsSerializerViewset(viewsets.ModelViewSet):
@@ -280,7 +290,9 @@ class MemberDetailViewSet(LicenseDetailsMixin,viewsets.ModelViewSet):
 class CreateOTPView(APIView):
     permission_classes = [AllowAny]
     def post(self, request):
-        phone_number = request.data.get('phone_number')
+        data = json.loads(request.body.decode('utf-8'))  # Decode JSON
+        print("Parsed data:", data)
+        phone_number = data.get('phone_number')
         
         if not phone_number:
             return Response({"error": "Phone number is required."}, status=status.HTTP_400_BAD_REQUEST)
