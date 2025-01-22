@@ -19,53 +19,52 @@ class userSerializer(serializers.ModelSerializer):
 
 class UserDetailsSerializer(serializers.ModelSerializer):
 
-    user_profile = serializers.PrimaryKeyRelatedField(read_only=True)
+    user_profile = serializers.PrimaryKeyRelatedField(queryset=User.objects.all())
 
     class Meta:
         model = UserDetails
         fields = ['id', 'user_profile', 'date_of_birth', 'user_status', 'phone_number']
-        read_only_fields = ['user_status','user_profile']
+    #   read_only_fields = ['user_status','user_profile']
    
 
 
 class MGQDetailsSerializer(serializers.ModelSerializer):
-    license_details = serializers.PrimaryKeyRelatedField(read_only=True) 
+    license_details = serializers.PrimaryKeyRelatedField(queryset=LicenseDetails.objects.all()) 
 
     class Meta:
         model = MGQDetails
-        fields = ['license_details','MGQ_in_BL', 'MGQ_in_LPL', 'MGQ_in_Quintal', 'deck_capacity']
+        fields = ['id','license_details','MGQ_in_BL', 'MGQ_in_LPL', 'MGQ_in_Quintal', 'deck_capacity']
 
-    read_only_fields = ['license_details']
+      #read_only_fields = ['license_details']
 
 class AddressDetailsSerializer(serializers.ModelSerializer):
     class Meta:
-        license_details = serializers.PrimaryKeyRelatedField(read_only=True)
+        license_details = serializers.PrimaryKeyRelatedField(queryset=LicenseDetails.objects.all())
         model = AddressDetails
-        fields = ['license_details','police_station', 'excise_sub_division', 'ward', 'site_address', 
+        fields = ['id','license_details','police_station', 'excise_sub_division', 'ward', 'site_address', 
                   'land_details', 'block', 'road']
-        read_only_fields = ['license_details']
+     # read_only_fields = ['license_details']
 
 class UnitDetailsSerializer(serializers.ModelSerializer):
     class Meta:
-        license_details = serializers.PrimaryKeyRelatedField(read_only=True)
+        license_details = serializers.PrimaryKeyRelatedField(queryset=LicenseDetails.objects.all())
         model = UnitDetails
-        fields = ['license_details','licensee_type', 'reg_office_address', 'pan', 'phone_number', 
+        fields = ['id','license_details','licensee_type', 'reg_office_address', 'pan', 'phone_number', 
                   'date_of_incorporation', 'department_office_unit', 'cin_number', 
                   'email_id', 'designation']
-        read_only_fields = ['license_details']
+      #read_only_fields = ['license_details']
 class MemberDetailSerializer(serializers.ModelSerializer):
-    license_details = serializers.PrimaryKeyRelatedField(read_only=True)
+    license_details = serializers.PrimaryKeyRelatedField(queryset=LicenseDetails.objects.all())
     class Meta:
         model = MemberDetail
         fields = ['id','license_details','member_status', 'member_name', 'citizenship', 'gender', 'pan_number', 
-                  'mobile_number', 'email_id', 'license']
-    read_only_fields = ['license_details']
+                  'mobile_number', 'email_id']
+   #read_only_fields = ['license_details']
 
 '''iska api get se saara details de dega but u cant post any detail of other model via this except key details like license number etc'''
 
 class LicenseDetailsSerializer(serializers.ModelSerializer):
-    user_profile=serializers.PrimaryKeyRelatedField(read_only=True)
-    # Use serializers to include related objects instead of just IDs
+    user_profile=serializers.PrimaryKeyRelatedField(queryset=User.objects.all())
     mgq_details = MGQDetailsSerializer(read_only=True)
     address_details = AddressDetailsSerializer(read_only=True)
     unit_details = UnitDetailsSerializer(read_only=True)
@@ -76,7 +75,7 @@ class LicenseDetailsSerializer(serializers.ModelSerializer):
         fields = ['id', 'user_profile', 'license_number', 'district_name', 'licensee_name', 'establishment_name', 
                   'license_category', 'license_type', 'license_nature', 'yearly_license_fee', 
                   'mgq_details', 'address_details', 'unit_details', 'members']
-    read_only_fields = ['user_profile', 'mgq_details', 'address_details', 'unit_details', 'members']
+    read_only_fields = [ 'mgq_details', 'address_details', 'unit_details', 'members']
    
     
 

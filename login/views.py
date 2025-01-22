@@ -17,11 +17,12 @@ from rest_framework.authtoken.models import Token
 from django.http import JsonResponse
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import viewsets
-from rest_framework.exceptions import ValidationError,PermissionDenied
+from rest_framework.exceptions import ValidationError,PermissionDenied,NotFound
 from rest_framework.permissions import AllowAny
 import logging
 from django.contrib.auth import update_session_auth_hash
 import json
+from .permissions import IsAdminOrReadOnly
 
 
 
@@ -32,16 +33,6 @@ we have also used perform_create() to associate the other model objects with the
 the get_queryset method overrides default and return only the queryset specific to the useri.e info relating only to that logged in user.
 in the userviewset we have also checked if the user is admin or not for registering a user  and if not then we have returned a response with error message.
 '''
-class LicenseDetailsMixin:
-    def perform_create(self, serializer):
-        try:
-            license_details = self.request.user.license_details
-        except LicenseDetails.DoesNotExist:
-        
-            raise ValidationError("User does not have associated license details.")
-
-       
-        serializer.save(license_details=license_details)
 
 
 def login_user(request):
@@ -90,196 +81,179 @@ def User_page(request):
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = userSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAdminOrReadOnly]
     authentication_classes = [TokenAuthentication]
-    def create(self, request, *args, **kwargs):
-        '''only admin is allowed to create a user''' 
-        if not request.user.is_staff:  
-            return Response({"error": "You do not have permission to create a user."},
-                            status=status.HTTP_403_FORBIDDEN)
-
-        
-        return super().create(request, *args, **kwargs)
+    
     
     def get_queryset(self):
-        return User.objects.filter(id=self.request.user.id)
-   
+        if self.request.user.is_staff:
+            return User.objects.all()  # Admins can view all users
+        return User.objects.filter(id=self.request.user.id)  # Regular users see only their data
+
 
 class UserDetailsSerializerViewset(viewsets.ModelViewSet):
     serializer_class = UserDetailsSerializer
     queryset = UserDetails.objects.all()
     authentication_classes = [TokenAuthentication]
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAdminOrReadOnly]
 
     def get_queryset(self):
-    
-        user = self.request.user 
-        try:
-            return UserDetails.objects.filter(user_profile=user)
-        except UserDetails.DoesNotExist:
+        user = self.request.user
         
-            raise PermissionDenied("User details not found.")
+        # Admin can view all user details
+        if self.request.user.is_staff:
+            return UserDetails.objects.all()
+        
+        # Regular users can only view their own details
+        return UserDetails.objects.filter(user_profile=user)
 
-    # Automatically associate the logged-in user with the user_profile field(note for self : in UserDetails model)
-    def perform_create(self, serializer):
-        serializer.save(user_profile=self.request.user)
 
 class LicenseDetailsSerializerViewset( viewsets.ModelViewSet):
     serializer_class = LicenseDetailsSerializer
     queryset = LicenseDetails.objects.all()
     authentication_classes = [TokenAuthentication]
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAdminOrReadOnly]
 
   
+   
     def get_queryset(self):
-        user = self.request.user  
-        queryset = LicenseDetails.objects.filter(user_profile=user)
+        """
+        This method ensures that:
+        - Admins can access all LicenseDetails.
+        - Regular users can only access their own LicenseDetails.
+        - If no LicenseDetails are found for the user, a NotFound exception is raised.
+        """
+        user = self.request.user  # Get the logged-in user
         
-       
+        # Admins can access all LicenseDetails
+        if user.is_staff:
+            return LicenseDetails.objects.all()
+
+        # Regular users can access only their own LicenseDetails
+        queryset = LicenseDetails.objects.filter(user_profile=user)
+
+        # If no LicenseDetails are found for the regular user, raise NotFound exception
         if not queryset.exists():
-            raise PermissionDenied("License details not found.")
-    
+            raise NotFound("License details not found for this user.")
+
         return queryset
 
-  
-    def perform_create(self, serializer):
-       
-        serializer.save(user_profile=self.request.user)
 
-
-
-class MGQDetailsViewSet(LicenseDetailsMixin,viewsets.ModelViewSet):
+class MGQDetailsViewSet(viewsets.ModelViewSet):
     queryset = MGQDetails.objects.all()
     serializer_class = MGQDetailsSerializer
     authentication_classes = [TokenAuthentication]
-    permission_classes = [IsAuthenticated]
-   
+    permission_classes = [IsAdminOrReadOnly]
     def get_queryset(self):
-        user = self.request.user 
-        '''Get the currently authenticated user
+        """
+        This method ensures that:
+        - Admins can access all MGQDetails.
+        - Regular users can access MGQDetails related to their own LicenseDetails.
+        - If no LicenseDetails are found for the user, a PermissionDenied exception is raised.
+        """
+        user = self.request.user  # Get the logged-in user
         
-            Find the user's corresponding LicenseDetails and  only that quesryset is returned specific to user '''
+        # If the user is an admin, return all MGQDetails
+        if user.is_staff:
+            return MGQDetails.objects.all()
+
+        # Regular users: try to fetch the LicenseDetails for the authenticated user
         try:
             license_details = LicenseDetails.objects.get(user_profile=user)
         except LicenseDetails.DoesNotExist:
             raise PermissionDenied("License details not found for the user.")
         
-        '''we can filter like this cuz django auto manages foreign key relationships '''
+        # Filter MGQDetails by the related LicenseDetails for the user
         queryset = MGQDetails.objects.filter(license_details=license_details)
+        
+        # If no MGQDetails are found for the given LicenseDetails, raise a NotFound exception
+        if not queryset.exists():
+            raise NotFound("MGQ details not found for this user.")
         
         return queryset
 
-    def perform_create(self, serializer):
-    
-        user = self.request.user
-       
-        try:
-            license_details = LicenseDetails.objects.get(user_profile=user)
-        except LicenseDetails.DoesNotExist:
-            raise PermissionDenied("License details not found for the user.")
-       
-        serializer.save(license_details=license_details)
 
-class AddressDetailsViewSet(LicenseDetailsMixin,viewsets.ModelViewSet):
+class AddressDetailsViewSet(viewsets.ModelViewSet):
     queryset = AddressDetails.objects.all()
     serializer_class = AddressDetailsSerializer
     authentication_classes = [TokenAuthentication]
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAdminOrReadOnly]
 
 
     def get_queryset(self):
-        user = self.request.user  
+        user = self.request.user  # Get the logged-in user
+        
+        # If the user is an admin, return all AddressDetails
+        if user.is_staff:
+            return AddressDetails.objects.all()
+
+        # For regular users, fetch the LicenseDetails related to the authenticated user
         try:
             license_details = LicenseDetails.objects.get(user_profile=user)
         except LicenseDetails.DoesNotExist:
             raise PermissionDenied("License details not found for the user.")
         
-      
-        queryset = MGQDetails.objects.filter(license_details=license_details)
+        # Now filter AddressDetails by the related LicenseDetails
+        queryset = AddressDetails.objects.filter(license_details=license_details)
+        
+        # If no AddressDetails are found for the user, raise a NotFound exception
+        if not queryset.exists():
+            raise NotFound("Address details not found for this user.")
         
         return queryset
-    def perform_create(self, serializer):
-        # Get the currently authenticated user
-        user = self.request.user
-        
-        # Find the user's corresponding LicenseDetails
-        try:
-            license_details = LicenseDetails.objects.get(user_profile=user)
-        except LicenseDetails.DoesNotExist:
-            raise PermissionDenied("License details not found for the user.")
-        
-        # Automatically associate the LicenseDetails with MGQDetails (no need to link user_profile explicitly)
-        serializer.save(license_details=license_details)
+   
 
-
-class UnitDetailsViewSet(LicenseDetailsMixin,viewsets.ModelViewSet):
+class UnitDetailsViewSet(viewsets.ModelViewSet):
     queryset = UnitDetails.objects.all()
     serializer_class = UnitDetailsSerializer
     authentication_classes = [TokenAuthentication]
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAdminOrReadOnly]
 
     def get_queryset(self):
         user = self.request.user  # Get the currently authenticated user
         
+        # If the user is an admin, return all UnitDetails
+        if user.is_staff:
+            return UnitDetails.objects.all()
+
         # Find the user's corresponding LicenseDetails
         try:
             license_details = LicenseDetails.objects.get(user_profile=user)
         except LicenseDetails.DoesNotExist:
             raise PermissionDenied("License details not found for the user.")
         
-        # Return MGQDetails associated with the found LicenseDetails
-        queryset = MGQDetails.objects.filter(license_details=license_details)
+        # Return UnitDetails associated with the found LicenseDetails
+        queryset = UnitDetails.objects.filter(license_details=license_details)
         
         return queryset
 
-    def perform_create(self, serializer):
-        # Get the currently authenticated user
-        user = self.request.user
-        
-        # Find the user's corresponding LicenseDetails
-        try:
-            license_details = LicenseDetails.objects.get(user_profile=user)
-        except LicenseDetails.DoesNotExist:
-            raise PermissionDenied("License details not found for the user.")
-        
-        # Automatically associate the LicenseDetails with MGQDetails (no need to link user_profile explicitly)
-        serializer.save(license_details=license_details)
 
 
 
-class MemberDetailViewSet(LicenseDetailsMixin,viewsets.ModelViewSet):
+class MemberDetailViewSet(viewsets.ModelViewSet):
     queryset = MemberDetail.objects.all()
     serializer_class = MemberDetailSerializer
     authentication_classes = [TokenAuthentication]
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAdminOrReadOnly]
     
-
     def get_queryset(self):
         user = self.request.user  # Get the currently authenticated user
         
+        # If the user is an admin, return all MemberDetails
+        if user.is_staff:
+            return MemberDetail.objects.all()
+
         # Find the user's corresponding LicenseDetails
         try:
             license_details = LicenseDetails.objects.get(user_profile=user)
         except LicenseDetails.DoesNotExist:
             raise PermissionDenied("License details not found for the user.")
         
-        # Return MGQDetails associated with the found LicenseDetails
-        queryset = MGQDetails.objects.filter(license_details=license_details)
+        # Return MemberDetails associated with the found LicenseDetails
+        queryset = MemberDetail.objects.filter(license_details=license_details)
         
         return queryset
     
-    def perform_create(self, serializer):
-        # Get the currently authenticated user
-        user = self.request.user
-        
-        # Find the user's corresponding LicenseDetails
-        try:
-            license_details = LicenseDetails.objects.get(user_profile=user)
-        except LicenseDetails.DoesNotExist:
-            raise PermissionDenied("License details not found for the user.")
-        
-        # Automatically associate the LicenseDetails with MGQDetails (no need to link user_profile explicitly)
-        serializer.save(license_details=license_details)
     
 
 

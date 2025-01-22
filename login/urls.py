@@ -11,7 +11,7 @@ from .views import ChangePasswordView
 
 router=routers.DefaultRouter()
 router.register('users',views.UserViewSet)
-router.register('user-det',views.UserDetailsSerializerViewset)
+router.register('user-details',views.UserDetailsSerializerViewset)
 router.register('license-details',LicenseDetailsSerializerViewset) 
 router.register('mgq-details', MGQDetailsViewSet)
 router.register('address-details', AddressDetailsViewSet)

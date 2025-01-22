@@ -70,13 +70,13 @@ class UnitDetailsAdmin(admin.ModelAdmin):
 @admin.register(MemberDetail)
 class MemberDetailAdmin(admin.ModelAdmin):
   
-    list_display = ['license', 'member_status', 'member_name', 'citizenship', 'gender', 'pan_number', 'mobile_number','email_id']
+    list_display = ['license_details', 'member_status', 'member_name', 'citizenship', 'gender', 'pan_number', 'mobile_number','email_id']
     
-    search_fields = ['license__license_number', 'member_name', 'mobile_number', 'pan_number']
+    search_fields = ['license_details__license_number', 'member_name', 'mobile_number', 'pan_number']
    
     list_filter = ['citizenship', 'member_status']
    
-    fields = ['license', 'member_status', 'member_name', 'citizenship', 'gender', 'pan_number', 'mobile_number', 'email_id']
+    fields = ['license_details', 'member_status', 'member_name', 'citizenship', 'gender', 'pan_number', 'mobile_number', 'email_id']
 
 @admin.register(OTPVerification)
 

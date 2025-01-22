@@ -7,8 +7,8 @@ from django.utils import timezone
 
 
 phone_number_validator = RegexValidator(
-    regex=r'^\d{10}$', 
-    message="Enter a valid 10-digit phone number."
+    regex=r'^[6-9]{1}[0-9]{9}$',  # Starts with digits 6-9 followed by 9 digits
+    message="Enter a valid 10-digit phone number starting with a digit between 6 and 9."
 )
 validate_4_digit_otp = RegexValidator(
     regex=r'^\d{4}$',
@@ -100,7 +100,7 @@ class MemberDetail(models.Model):
         ('Non-Indian', 'Non-Indian'),
     ]
     
-    license = models.ForeignKey(LicenseDetails, on_delete=models.CASCADE, related_name="members")
+    license_details = models.ForeignKey(LicenseDetails, on_delete=models.CASCADE, related_name="members")
     member_status = models.CharField(max_length=50, choices=MEMBER_STATUS_CHOICES)
     member_name = models.CharField(max_length=100)
     citizenship = models.CharField(max_length=50, choices=CITIZENSHIP_CHOICES, default='Indian')
