@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import UserDetails, LicenseDetails,OTPVerification, MGQDetails, AddressDetails, UnitDetails, MemberDetail
+from .models import UserDetails, LicenseDetails,OTPVerification, MGQDetails, AddressDetails, UnitDetails, MemberDetail,District,LicenseCategory
 
 
 @admin.register(UserDetails)
@@ -86,3 +86,14 @@ class OTPVerificationAdmin(admin.ModelAdmin):
     list_filter = ('is_verified', 'created_at')
     ordering = ('-created_at',)
     fields = ('phone_number', 'otp', 'created_at', 'is_verified')
+
+
+@admin.register(District)
+class DistrictAdmin(admin.ModelAdmin):
+    list_display = ('id', 'name')  
+    search_fields = ('name',) 
+
+
+@admin.register(LicenseCategory)
+class LicenseCategoryAdmin(admin.ModelAdmin):
+    list_display = ('id', 'name')  
