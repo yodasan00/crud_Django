@@ -18,6 +18,10 @@ pan_validator = RegexValidator(
     regex=r'^[A-Z]{5}[0-9]{4}[A-Z]{1}$',
     message="Enter a valid PAN number (e.g., ABCDE1234F)."
 )
+email_validator=RegexValidator(
+    regex=r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$',
+    message="Enter a valid email address."
+)
 
 class UserDetails(models.Model):
     user_profile = models.OneToOneField(User, on_delete=models.CASCADE ,related_name="user_details") 
@@ -81,7 +85,7 @@ class UnitDetails(models.Model):
     date_of_incorporation = models.DateField(blank=True, null=True)
     department_office_unit = models.CharField(max_length=100, blank=True, null=True)
     cin_number = models.CharField(max_length=50, blank=True, null=True)
-    email_id = models.EmailField(blank=True, null=True)
+    email_id = models.EmailField(blank=True, null=True,validators=[email_validator])
     designation = models.CharField(max_length=100, blank=True, null=True)
 
     def __str__(self):

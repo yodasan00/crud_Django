@@ -374,6 +374,7 @@ class VerifyOTPView(APIView):
 
 class ChangePasswordView(APIView):
     permission_classes = [IsAuthenticated]
+    authentication_classes = [TokenAuthentication]
 
     def post(self, request):
         old_password = request.data.get('old_password')
