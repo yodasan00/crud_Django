@@ -22,7 +22,7 @@ from rest_framework.permissions import AllowAny
 import logging
 from django.contrib.auth import update_session_auth_hash
 import json
-from .permissions import IsAdminOrReadOnly
+from .permissions import IsAdminOrReadOnly,IsSuperUser
 
 
 
@@ -395,12 +395,10 @@ class ChangePasswordView(APIView):
         return Response({'success': 'Password changed successfully'}, status=200)
     
 
-    def superuser_required(view_func):
-        return user_passes_test(lambda user: user.is_superuser)(view_func)
-
-
-    @superuser_required
-    def create_admin_view(request):
+   
+class CreateAdminView(APIView):
+        permission_classes = [IsSuperUser]
+        def post(self,request):
             if request.method == "POST":
                 try:
                     data = json.loads(request.body)
