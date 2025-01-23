@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required,user_passes_test
 from django.contrib import messages
 from.serializers import UserDetailsSerializer,LicenseDetailsSerializer,userSerializer,MGQDetailsSerializer,AddressDetailsSerializer,UnitDetailsSerializer,MemberDetailSerializer,OTPVerificationSerializer
 from .models import UserDetails,LicenseDetails,MGQDetails,AddressDetails,UnitDetails,MemberDetail,OTPVerification
@@ -390,7 +390,36 @@ class ChangePasswordView(APIView):
         request.user.save()
 
             # Keep the user logged in after password change
-        update_session_auth_hash(request, request.user)
+        update_session_auth_hash(request, request.user)  
 
         return Response({'success': 'Password changed successfully'}, status=200)
+    
+
+    def superuser_required(view_func):
+        return user_passes_test(lambda user: user.is_superuser)(view_func)
+
+
+    @superuser_required
+    def create_admin_view(request):
+            if request.method == "POST":
+                try:
+                    data = json.loads(request.body)
+                    username = data.get("username")
+                    password = data.get("password")
+                    email = data.get("email", "")
+                    
+                    if not username or not password:
+                        return JsonResponse({"error": "Username and password are required."}, status=400)
+                    
+                    if User.objects.filter(username=username).exists():
+                        return JsonResponse({"error": "User with this username already exists."}, status=400)
+
+                    # Create a superuser
+                    User.objects.create_superuser(username=username, password=password, email=email)
+                    return JsonResponse({"message": "Admin user created successfully."}, status=201)
+
+                except json.JSONDecodeError:
+                    return JsonResponse({"error": "Invalid JSON data."}, status=400)
+
+            return JsonResponse({"error": "Only POST method is allowed."}, status=405)
            
