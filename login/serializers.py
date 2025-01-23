@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import UserDetails, LicenseDetails, LicenseDetails, MGQDetails, AddressDetails, UnitDetails, MemberDetail
+from .models import UserDetails, LicenseDetails, LicenseDetails, MGQDetails, AddressDetails, UnitDetails, MemberDetail,District,LicenseCategory
 from django.contrib.auth.models import User
 from .models import OTPVerification
 
@@ -92,3 +92,14 @@ class OTPVerificationSerializer(serializers.ModelSerializer):
         if not value.isdigit() or len(value) != 4:
             raise serializers.ValidationError("Enter a valid 4-digit OTP.")
         return value
+    
+
+class DistrictSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = District
+        fields = ['id', 'name']
+
+class LicenseCategorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = LicenseCategory
+        fields = ['id', 'category']

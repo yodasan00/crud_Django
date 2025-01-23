@@ -2,8 +2,8 @@ from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.decorators import login_required,user_passes_test
 from django.contrib import messages
-from.serializers import UserDetailsSerializer,LicenseDetailsSerializer,userSerializer,MGQDetailsSerializer,AddressDetailsSerializer,UnitDetailsSerializer,MemberDetailSerializer,OTPVerificationSerializer
-from .models import UserDetails,LicenseDetails,MGQDetails,AddressDetails,UnitDetails,MemberDetail,OTPVerification
+from.serializers import UserDetailsSerializer,LicenseDetailsSerializer,userSerializer,MGQDetailsSerializer,AddressDetailsSerializer,UnitDetailsSerializer,MemberDetailSerializer,OTPVerificationSerializer,DistrictSerializer,LicenseCategorySerializer
+from .models import UserDetails,LicenseDetails,MGQDetails,AddressDetails,UnitDetails,MemberDetail,OTPVerification,District,LicenseCategory
 from rest_framework.authentication import TokenAuthentication
 from django.contrib.auth.models import User
 from rest_framework.views import APIView
@@ -426,4 +426,44 @@ class CreateAdminView(APIView):
                     return JsonResponse({"error": "Invalid JSON data."}, status=400)
 
             return JsonResponse({"error": "Only POST method is allowed."}, status=405)
-           
+        
+
+class DistrictListView(viewsets.ReadOnlyModelViewSet): #populates the dropdown through Get method 
+    queryset = District.objects.all()
+    serializer_class = DistrictSerializer
+    authentication_classes = [TokenAuthentication]
+        
+
+class LicCatListView(viewsets.ReadOnlyModelViewSet): #populates the dropdown through Get method 
+    queryset = LicenseCategory.objects.all()
+    serializer_class = LicenseCategorySerializer
+    authentication_classes = [TokenAuthentication]
+
+
+class FilterLicenseDetails(APIView): #filters and sorts the selected data from the dropdown 
+    def post(self, request):
+        data = json.loads(request.body.decode('utf-8'))
+        district_id = data.get('district_id')
+        license_category_id = data.get('license_category_id')
+
+        if not district_id or not license_category_id:
+            return Response({"error": "District ID and License Category ID are required."}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            district = District.objects.get(id=district_id)
+        except District.DoesNotExist:
+            return Response({"error": "District not found."}, status=status.HTTP_404_NOT_FOUND)
+
+        try:
+            license_category = LicenseCategory.objects.get(id=license_category_id)
+        except LicenseCategory.DoesNotExist:
+            return Response({"error": "License Category not found."}, status=status.HTTP_404_NOT_FOUND)
+
+        # yesle filters the data acc. to dis and category and sorts acc. to license_n0
+        licenses = LicenseDetails.objects.filter(
+            district_name=district,
+            license_category=license_category
+        ).order_by('license_number')
+
+        serializer = LicenseDetailsSerializer(licenses, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)

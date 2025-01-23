@@ -32,22 +32,33 @@ class UserDetails(models.Model):
     def __str__(self): 
         return self.user_profile.username
 
+class District(models.Model): #Master table for District
+    name = models.CharField(max_length=100, unique=True)
 
+    def __str__(self):
+        return self.name
+    
+class LicenseCategory(models.Model): #Master table for Licensecat
+    category = models.CharField(max_length=100, unique=True)
+
+    def __str__(self):
+        return self.category
 
 
 class LicenseDetails(models.Model):
     user_profile = models.OneToOneField(User, on_delete=models.CASCADE, related_name='license_details')  
     license_number = models.CharField(max_length=50, unique=True)
-    district_name = models.CharField(max_length=100)
+    district_name = models.ForeignKey(District, on_delete=models.CASCADE, related_name='licenses')
     licensee_name = models.CharField(max_length=100)
     establishment_name = models.CharField(max_length=100)
-    license_category = models.CharField(max_length=50)
+    license_category = models.ForeignKey(LicenseCategory, on_delete=models.CASCADE , related_name='licenses')
     license_type = models.CharField(max_length=50)
     license_nature = models.CharField(max_length=50)
     yearly_license_fee = models.DecimalField(max_digits=10, decimal_places=2)
 
     def __str__(self):
         return f"License {self.license_number} for {self.user_profile.username}"
+    
 
 
 class MGQDetails(models.Model):
