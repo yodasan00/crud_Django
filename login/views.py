@@ -414,8 +414,11 @@ class ChangePasswordView(APIView):
                     if User.objects.filter(username=username).exists():
                         return JsonResponse({"error": "User with this username already exists."}, status=400)
 
-                    # Create a superuser
-                    User.objects.create_superuser(username=username, password=password, email=email)
+                    #we do not Create a superuser but only an admin if we wanted to create superuse create_superuser funnction is to be used
+                    # Create an admin user (is_staff=True, is_superuser=False)
+                    admin_user = User.objects.create_user(username=username, password=password, email=email)
+                    admin_user.is_staff = True  # Set is_staff to True for admin privileges
+                    admin_user.save()
                     return JsonResponse({"message": "Admin user created successfully."}, status=201)
 
                 except json.JSONDecodeError:
