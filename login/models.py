@@ -19,7 +19,7 @@ pan_validator = RegexValidator(
     message="Enter a valid PAN number (e.g., ABCDE1234F)."
 )
 email_validator=RegexValidator(
-    regex=r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$',
+    regex=r'^[a-zA-Z0-9._-+]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$',
     message="Enter a valid email address."
 )
 
