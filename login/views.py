@@ -374,11 +374,11 @@ class VerifyOTPView(APIView):
 
 class ChangePasswordView(APIView):
     permission_classes = [IsAuthenticated]
-
     def post(self, request):
-        old_password = request.data.get('old_password')
-        new_password = request.data.get('new_password')
-        confirm_password = request.data.get('confirm_password')
+        data = json.loads(request.body.decode('utf-8'))
+        old_password = data.get('old_password')
+        new_password = data.get('new_password')
+        confirm_password = data.get('confirm_password')
 
         if new_password != confirm_password: #check new and confirm pass same
             return Response({'error': 'Passwords do not match'}, status=400)
