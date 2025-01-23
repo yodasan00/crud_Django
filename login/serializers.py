@@ -63,21 +63,47 @@ class MemberDetailSerializer(serializers.ModelSerializer):
 
 '''iska api get se saara details de dega but u cant post any detail of other model via this except key details like license number etc'''
 
+class DistrictSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = District
+        fields = ['id', 'name']
+
+class LicenseCategorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = LicenseCategory
+        fields = ['id', 'category']
 class LicenseDetailsSerializer(serializers.ModelSerializer):
-    user_profile=serializers.PrimaryKeyRelatedField(queryset=User.objects.all())
-    mgq_details = MGQDetailsSerializer(read_only=True)
-    address_details = AddressDetailsSerializer(read_only=True)
-    unit_details = UnitDetailsSerializer(read_only=True)
-    members = MemberDetailSerializer(many=True, read_only=True)
+    user_profile = serializers.PrimaryKeyRelatedField(queryset=User.objects.all())  # Expect user ID
+    district_name = serializers.PrimaryKeyRelatedField(queryset=District.objects.all())  # Expect District ID
+    license_category = serializers.PrimaryKeyRelatedField(queryset=LicenseCategory.objects.all())  # Expect LicenseCategory ID
+    mgq_details = MGQDetailsSerializer(read_only=True)  # Nested serializer for GET only
+    address_details = AddressDetailsSerializer(read_only=True)  # Nested serializer for GET only
+    unit_details = UnitDetailsSerializer(read_only=True)  # Nested serializer for GET only
+    members = MemberDetailSerializer(many=True, read_only=True)  # Nested serializer for GET only
 
     class Meta:
         model = LicenseDetails
-        fields = ['id', 'user_profile', 'license_number', 'district_name', 'licensee_name', 'establishment_name', 
-                  'license_category', 'license_type', 'license_nature', 'yearly_license_fee', 
-                  'mgq_details', 'address_details', 'unit_details', 'members']
-    read_only_fields = [ 'mgq_details', 'address_details', 'unit_details', 'members']
-   
-    
+        fields = [
+            'id', 'user_profile', 'license_number', 'district_name', 'licensee_name', 'establishment_name',
+            'license_category', 'license_type', 'license_nature', 'yearly_license_fee', 'mgq_details',
+            'address_details', 'unit_details', 'members'
+        ]
+
+    read_only_fields = ['mgq_details', 'address_details', 'unit_details', 'members']  # Make nested fields read-only
+
+    # Optional: Override to_representation method to handle nested representation for GET requests
+    def to_representation(self, instance):
+        # Get the normal representation from the parent
+        representation = super().to_representation(instance)
+        
+        # If it's a GET request, return full object data for related fields
+        # You can customize this based on the request type or context
+        if self.context.get('request') and self.context['request'].method == 'GET':
+            representation['district_name'] = DistrictSerializer(instance.district_name).data
+            representation['license_category'] = LicenseCategorySerializer(instance.license_category).data
+        
+        return representation
+
 
 class OTPVerificationSerializer(serializers.ModelSerializer):
     phone_number = serializers.StringRelatedField()  
@@ -93,13 +119,3 @@ class OTPVerificationSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("Enter a valid 4-digit OTP.")
         return value
     
-
-class DistrictSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = District
-        fields = ['id', 'name']
-
-class LicenseCategorySerializer(serializers.ModelSerializer):
-    class Meta:
-        model = LicenseCategory
-        fields = ['id', 'category']
