@@ -432,6 +432,7 @@ class DistrictListView(viewsets.ReadOnlyModelViewSet): #populates the dropdown t
     queryset = District.objects.all()
     serializer_class = DistrictSerializer
     authentication_classes = [TokenAuthentication]
+    
         
 
 class LicCatListView(viewsets.ReadOnlyModelViewSet): #populates the dropdown through Get method 
@@ -441,6 +442,8 @@ class LicCatListView(viewsets.ReadOnlyModelViewSet): #populates the dropdown thr
 
 
 class FilterLicenseDetails(APIView): #filters and sorts the selected data from the dropdown 
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [TokenAuthentication]
     def post(self, request):
         data = json.loads(request.body.decode('utf-8'))
         district_id = data.get('district_id')
