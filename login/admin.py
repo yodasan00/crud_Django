@@ -96,4 +96,4 @@ class DistrictAdmin(admin.ModelAdmin):
 
 @admin.register(LicenseCategory)
 class LicenseCategoryAdmin(admin.ModelAdmin):
-    list_display = ('id', 'name')  
+    list_display = ('id', 'category')  
