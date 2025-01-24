@@ -19,7 +19,7 @@ router.register('address-details', AddressDetailsViewSet)
 router.register('unit-details', UnitDetailsViewSet)
 router.register('member-details', MemberDetailViewSet)
 router.register('district', DistrictListView)
-router.register('lic_Cat',LicCatListView)
+router.register('lic_cat',LicCatListView)
 
 urlpatterns = [
     path('login/',views.login_user,name='login'),
@@ -28,7 +28,7 @@ urlpatterns = [
     path('login/change-password/', ChangePasswordView.as_view(), name='change_password'),
     path('', include(router.urls)),
     path('create-admin/', CreateAdminView.as_view(), name='create_admin'),
-     path('api/filter-licenses/', FilterLicenseDetails.as_view(), name='filter_licenses'),
+     path('filter-licenses/', FilterLicenseDetails.as_view(), name='filter_licenses'),
 
 ]
  

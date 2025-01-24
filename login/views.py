@@ -464,13 +464,17 @@ class FilterLicenseDetails(APIView): #filters and sorts the selected data from t
         try:
             license_category = LicenseCategory.objects.get(id=license_category_id)
         except LicenseCategory.DoesNotExist:
+           
             return Response({"error": "License Category not found."}, status=status.HTTP_404_NOT_FOUND)
-
+        
         # yesle filters the data acc. to dis and category and sorts acc. to license_n0
         licenses = LicenseDetails.objects.filter(
             district_name=district,
             license_category=license_category
         ).order_by('license_number')
+
+        if not licenses.exists():  # Check if the queryset is empty
+                return JsonResponse({"error": "No licenses found for the given filters."}, status=404)
 
         serializer = LicenseDetailsSerializer(licenses, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
