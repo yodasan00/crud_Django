@@ -95,12 +95,10 @@ class LicenseDetailsSerializer(serializers.ModelSerializer):
     def to_representation(self, instance):
         # Get the normal representation from the parent
         representation = super().to_representation(instance)
-        
-        # If it's a GET request, return full object data for related fields
-        # You can customize this based on the request type or context
-        if self.context.get('request') and self.context['request'].method == 'GET':
-            representation['district_name'] = DistrictSerializer(instance.district_name).data
-            representation['license_category'] = LicenseCategorySerializer(instance.license_category).data
+    
+        representation['user_profile'] = userSerializer(instance.user_profile).data
+        representation['district_name'] = DistrictSerializer(instance.district_name).data
+        representation['license_category'] = LicenseCategorySerializer(instance.license_category).data
         
         return representation
 

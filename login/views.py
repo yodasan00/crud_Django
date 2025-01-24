@@ -58,10 +58,14 @@ def login_user(request):
         
         if user is not None:
             login(request, user)
-            
-            user.user_details.user_status = True
-            user.user_details.save()
-
+            try:
+    # Access and modify user_details if it exists
+                user.user_details.user_status = True
+                user.user_details.save()
+            except AttributeError: 
+                # Handle the case where user_details does not exist
+                print("UserDetails object does not exist for this user.")
+    
             token, created = Token.objects.get_or_create(user=user)
             return JsonResponse({"token": token.key}, status=200)
         else:
@@ -432,14 +436,14 @@ class DistrictListView(viewsets.ReadOnlyModelViewSet): #populates the dropdown t
     queryset = District.objects.all()
     serializer_class = DistrictSerializer
     authentication_classes = [TokenAuthentication]
-    
+    permission_classes = [IsAuthenticated]
         
 
 class LicCatListView(viewsets.ReadOnlyModelViewSet): #populates the dropdown through Get method 
     queryset = LicenseCategory.objects.all()
     serializer_class = LicenseCategorySerializer
     authentication_classes = [TokenAuthentication]
-
+    permission_classes = [IsAuthenticated]
 
 class FilterLicenseDetails(APIView): #filters and sorts the selected data from the dropdown 
     permission_classes = [IsAuthenticated]

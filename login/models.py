@@ -18,10 +18,11 @@ pan_validator = RegexValidator(
     regex=r'^[A-Z]{5}[0-9]{4}[A-Z]{1}$',
     message="Enter a valid PAN number (e.g., ABCDE1234F)."
 )
-email_validator=RegexValidator(
-    regex=r'^[a-zA-Z0-9._-+]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$',
+email_validator = RegexValidator(
+    regex=r'^[a-zA-Z0-9._\-\+]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$',
     message="Enter a valid email address."
 )
+
 
 class UserDetails(models.Model):
     user_profile = models.OneToOneField(User, on_delete=models.CASCADE ,related_name="user_details") 
