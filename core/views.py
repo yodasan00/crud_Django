@@ -3,8 +3,8 @@ from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.decorators import login_required,user_passes_test
 from django.contrib import messages
-from.serializers import LicenseDetailsSerializer,MGQDetailsSerializer,AddressDetailsSerializer,UnitDetailsSerializer,MemberDetailSerializer,DistrictSerializer,LicenseCategorySerializer
-from .models import LicenseDetails,MGQDetails,AddressDetails,UnitDetails,MemberDetail,District,LicenseCategory
+from.serializers import LicenseDetailsSerializer,MGQDetailsSerializer,AddressDetailsSerializer,UnitDetailsSerializer,MemberDetailSerializer,DistrictSerializer,LicenseCategorySerializer,ApplicationSerializer
+from .models import LicenseDetails,MGQDetails,AddressDetails,UnitDetails,MemberDetail,District,LicenseCategory,Application
 from rest_framework.authentication import TokenAuthentication
 from django.contrib.auth.models import User
 from rest_framework.views import APIView
@@ -190,36 +190,62 @@ class LicCatListView(viewsets.ReadOnlyModelViewSet): #populates the dropdown thr
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
 
-class FilterLicenseDetails(APIView): #filters and sorts the selected data from the dropdown 
+class FilterLicenseDetails(APIView):  # Filters and sorts the selected data from the dropdown
     permission_classes = [IsAuthenticated]
     authentication_classes = [TokenAuthentication]
+
     def post(self, request):
+        # Parse the incoming request data
         data = json.loads(request.body.decode('utf-8'))
         district_id = data.get('district_id')
         license_category_id = data.get('license_category_id')
+        renewal_year = data.get('renewal_year')
 
-        if not district_id or not license_category_id:
-            return Response({"error": "District ID and License Category ID are required."}, status=status.HTTP_400_BAD_REQUEST)
+        # Validate the inputs
+        if not district_id or not license_category_id or not renewal_year:
+            return Response(
+                {"error": "District ID, License Category ID, and Application Year are required."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
+        # Validate the district
         try:
             district = District.objects.get(id=district_id)
         except District.DoesNotExist:
             return Response({"error": "District not found."}, status=status.HTTP_404_NOT_FOUND)
 
+        # Validate the license category
         try:
             license_category = LicenseCategory.objects.get(id=license_category_id)
         except LicenseCategory.DoesNotExist:
-           
             return Response({"error": "License Category not found."}, status=status.HTTP_404_NOT_FOUND)
-        
-        # yesle filters the data acc. to dis and category and sorts acc. to license_n0
-        licenses = LicenseDetails.objects.filter(
-            district_name=district,
-            license_category=license_category
-        ).order_by('license_number')
 
-        if not licenses.exists():  # Check if the queryset is empty
-                return JsonResponse({"error": "No licenses found for the given filters."}, status=404)
+        # Filter applications based on the provided criteria
+        applications = Application.objects.filter(
+            license__district_name=district,
+            license__license_category=license_category,
+            renewal_year=renewal_year,
+        ).select_related('license')
 
-        serializer = LicenseDetailsSerializer(licenses, many=True)
+        # Check if any applications match the filters
+        if not applications.exists():
+            return Response(
+                {"error": "No renewal applications found "},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        # Serialize the filtered applications
+        serializer = ApplicationSerializer(applications, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class ApplicationRenewView(APIView):
+    def get(self, request):
+        """
+        Fetch all renewal applications.
+        """
+        applications = Application.objects.select_related(
+            'license__district_name', 'license__license_category'
+        ).all()
+        serializer = ApplicationSerializer(applications, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
