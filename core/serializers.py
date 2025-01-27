@@ -29,8 +29,8 @@ class UnitDetailsSerializer(serializers.ModelSerializer):
                   'email_id', 'designation']
       #read_only_fields = ['license_details']
 class MemberDetailSerializer(serializers.ModelSerializer):
-    license_details = serializers.PrimaryKeyRelatedField(queryset=LicenseDetails.objects.all())
     class Meta:
+        license_details = serializers.PrimaryKeyRelatedField(queryset=LicenseDetails.objects.all())
         model = MemberDetail
         fields = ['id','license_details','member_status', 'member_name', 'citizenship', 'gender', 'pan_number', 
                   'mobile_number', 'email_id']
