@@ -116,3 +116,5 @@ class MemberDetail(models.Model):
 
     def __str__(self):
         return f"{self.member_name} ({self.member_status})"
+class licenseHold(models.Model):
+    pass
