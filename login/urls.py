@@ -5,7 +5,8 @@ from django.urls import path
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from .views import CreateOTPView, VerifyOTPView
-from .views import ChangePasswordView,CreateAdminView
+from .views import ChangePasswordView,CreateAdminView,LogoutView
+from django.contrib.auth import views as auth_views
 
 
 
@@ -21,6 +22,7 @@ urlpatterns = [
     path('login/change-password/', ChangePasswordView.as_view(), name='change_password'),
     path('', include(router.urls)),
     path('create-admin/', CreateAdminView.as_view(), name='create_admin'),
+    path('logout/',LogoutView.as_view(), name='logout'),
      
 
 ]

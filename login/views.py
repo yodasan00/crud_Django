@@ -1,5 +1,5 @@
-from django.shortcuts import render, redirect
-from django.contrib.auth import authenticate, login
+from django.shortcuts import render
+from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required,user_passes_test
 from django.contrib import messages
 from.serializers import UserDetailsSerializer,userSerializer,OTPVerificationSerializer
@@ -282,3 +282,10 @@ class CreateAdminView(APIView):
 
             return JsonResponse({"error": "Only POST method is allowed."}, status=405)
         
+class LogoutView(APIView):
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [TokenAuthentication]
+    def post(self, request):
+        # request.auth.delete()
+        logout(request)
+        return Response({"message": "Logged out successfully."}, status=status.HTTP_200_OK)        
