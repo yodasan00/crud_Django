@@ -66,10 +66,19 @@ class LicenseDetailsSerializer(serializers.ModelSerializer):
         ]
 
     read_only_fields = ['mgq_details', 'address_details', 'unit_details', 'members']  # Make nested fields read-only
+    def to_representation(self, instance):
+        # Get the normal representation from the parent
+        representation = super().to_representation(instance)
+    
+        representation['user_profile'] = userSerializer(instance.user_profile).data
+        representation['district_name'] = DistrictSerializer(instance.district_name).data
+        representation['license_category'] = LicenseCategorySerializer(instance.license_category).data
+        
+        return representation
 
 
 class ApplicationSerializer(serializers.ModelSerializer):
-    license = serializers.PrimaryKeyRelatedField(queryset=LicenseDetails.objects.all())   # Nested serializer to include license details
+    license = LicenseDetailsSerializer()  # Use nested serializer to include full license details
 
     class Meta:
         model = Application
@@ -78,8 +87,9 @@ class ApplicationSerializer(serializers.ModelSerializer):
             'application_date',
             'status',
             'renewal_year',
-            'license',  # Include related license details
+            'license', 
         ]
 
-    # Optional: Override to_representation method to handle nested representation for GET requests
+
+    
 
