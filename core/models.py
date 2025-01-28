@@ -122,7 +122,7 @@ class licenseHold(models.Model):
 class Application(models.Model):
     application_id = models.CharField(max_length=30, unique=True)
     application_date = models.DateField()
-    license = models.ForeignKey(LicenseDetails, on_delete=models.CASCADE, related_name='applications')
+    license = models.OneToOneField(LicenseDetails, on_delete=models.CASCADE, related_name='applications')
     status = models.CharField(max_length=100, choices=[
         ('Draft', 'Draft'),
         ('Submitted', 'Submitted'),

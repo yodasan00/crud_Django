@@ -69,21 +69,17 @@ class LicenseDetailsSerializer(serializers.ModelSerializer):
 
 
 class ApplicationSerializer(serializers.ModelSerializer):
-    license_details = LicenseDetailsSerializer(source='license') 
+    license = serializers.PrimaryKeyRelatedField(queryset=LicenseDetails.objects.all())   # Nested serializer to include license details
 
     class Meta:
         model = Application
-        fields = ['application_id', 'application_date', 'license_details', 'status', 'renewal_year',]
+        fields = [
+            'application_id',
+            'application_date',
+            'status',
+            'renewal_year',
+            'license',  # Include related license details
+        ]
 
     # Optional: Override to_representation method to handle nested representation for GET requests
-    def to_representation(self, instance):
-        # Get the normal representation from the parent
-        representation = super().to_representation(instance)
-    
-        representation['user_profile'] = userSerializer(instance.user_profile).data
-        representation['district_name'] = DistrictSerializer(instance.district_name).data
-        representation['license_category'] = LicenseCategorySerializer(instance.license_category).data
-        
-        return representation
-
 
