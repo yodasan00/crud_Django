@@ -118,3 +118,18 @@ class MemberDetail(models.Model):
         return f"{self.member_name} ({self.member_status})"
 class licenseHold(models.Model):
     pass
+
+class Application(models.Model):
+    application_id = models.CharField(max_length=30, unique=True)
+    application_date = models.DateField()
+    license = models.OneToOneField(LicenseDetails, on_delete=models.CASCADE, related_name='applications')
+    status = models.CharField(max_length=100, choices=[
+        ('Draft', 'Draft'),
+        ('Submitted', 'Submitted'),
+        ('Approved', 'Approved'),
+        ('Rejected', 'Rejected')
+    ])
+    renewal_year = models.CharField(max_length=9)  # Format: "YYYY-YYYY"
+
+    def __str__(self):
+        return f"Application for {self.license.license_number} ({self.renewal_year})"

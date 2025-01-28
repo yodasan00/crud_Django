@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import LicenseDetails, LicenseDetails, MGQDetails, AddressDetails, UnitDetails, MemberDetail,District,LicenseCategory
+from .models import LicenseDetails, LicenseDetails, MGQDetails, AddressDetails, UnitDetails, MemberDetail,District,LicenseCategory,Application
 from django.contrib.auth.models import User
 from login.serializers import userSerializer
 
@@ -47,6 +47,7 @@ class LicenseCategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = LicenseCategory
         fields = ['id', 'category']
+
 class LicenseDetailsSerializer(serializers.ModelSerializer):
     user_profile = serializers.PrimaryKeyRelatedField(queryset=User.objects.all())  # Expect user ID
     district_name = serializers.PrimaryKeyRelatedField(queryset=District.objects.all())  # Expect District ID
@@ -65,8 +66,6 @@ class LicenseDetailsSerializer(serializers.ModelSerializer):
         ]
 
     read_only_fields = ['mgq_details', 'address_details', 'unit_details', 'members']  # Make nested fields read-only
-
-    # Optional: Override to_representation method to handle nested representation for GET requests
     def to_representation(self, instance):
         # Get the normal representation from the parent
         representation = super().to_representation(instance)
@@ -77,4 +76,20 @@ class LicenseDetailsSerializer(serializers.ModelSerializer):
         
         return representation
 
+
+class ApplicationSerializer(serializers.ModelSerializer):
+    license = LicenseDetailsSerializer()  # Use nested serializer to include full license details
+
+    class Meta:
+        model = Application
+        fields = [
+            'application_id',
+            'application_date',
+            'status',
+            'renewal_year',
+            'license', 
+        ]
+
+
+    
 
