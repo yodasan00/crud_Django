@@ -139,7 +139,15 @@ class CreateOTPView(APIView):
             if time_diff < timedelta(minutes=1):  
                 '''one otp only in a minute'''
                 remaining_time = timedelta(minutes=1) - time_diff
-                raise ValidationError(f"Please wait {remaining_time.seconds} seconds before requesting a new OTP.")
+                Wait=remaining_time.seconds
+                return JsonResponse(
+    {
+        "message": f"Please wait {Wait} seconds before requesting a new OTP."
+    },
+    status=status.HTTP_429_TOO_MANY_REQUESTS
+)
+
+               
         except OTPVerification.DoesNotExist:
             pass  # If no OTP requests exist for this phone numbee
     
