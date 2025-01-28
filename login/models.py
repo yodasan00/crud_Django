@@ -46,25 +46,4 @@ class OTPVerification(models.Model):
 
 
 
-    @staticmethod
-    def verify_otp(phone_number, otp):
   
-        try:
-            otp_record = OTPVerification.objects.filter(
-                phone_number__phone_number=phone_number,
-                otp=otp,
-                is_verified=False,  
-            ).latest('created_at')
-
-            
-            if timezone.now() - otp_record.created_at > timedelta(minutes=5):
-                return False
-            
-
-      
-            otp_record.is_verified = True
-            otp_record.save()
-            return True
-        except OTPVerification.DoesNotExist:
-            return False
-
