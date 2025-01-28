@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import  LicenseDetails, MGQDetails, AddressDetails, UnitDetails, MemberDetail,District,LicenseCategory
+from .models import  LicenseDetails, MGQDetails, AddressDetails, UnitDetails, MemberDetail,District,LicenseCategory,Application
 # Register your models here.
 
 
@@ -73,3 +73,8 @@ class MemberDetailAdmin(admin.ModelAdmin):
     list_filter = ['citizenship', 'member_status']
    
     fields = ['license_details', 'member_status', 'member_name', 'citizenship', 'gender', 'pan_number', 'mobile_number', 'email_id']
+
+@admin.register(Application)
+class ApplicationAdmin(admin.ModelAdmin):
+    list_display = ('application_id','application_date','license','status','renewal_year')  
+    search_fields = ('application_id','application_date','license','status','renewal_year')
