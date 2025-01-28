@@ -240,8 +240,7 @@ class FilterLicenseDetails(APIView):  # Filters and sorts the selected data from
 
 
 class ApplicationRenewView(APIView):
-    permission_classes = [IsAdminOrReadOnly]
-    authentication_classes = [TokenAuthentication]
+  
     def get(self, request):
         """
         Fetch all renewal applications.
