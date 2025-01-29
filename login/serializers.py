@@ -24,7 +24,7 @@ class UserDetailsSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserDetails
         fields = ['id', 'user_profile', 'date_of_birth', 'user_status', 'phone_number']
-    #   read_only_fields = ['user_status','user_profile']
+ 
    
 class OTPVerificationSerializer(serializers.ModelSerializer):
     phone_number = serializers.StringRelatedField()  

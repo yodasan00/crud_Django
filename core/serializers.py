@@ -78,6 +78,7 @@ class LicenseDetailsSerializer(serializers.ModelSerializer):
 
 
 class ApplicationSerializer(serializers.ModelSerializer):
+  
     license = LicenseDetailsSerializer()  # Use nested serializer to include full license details
 
     class Meta:

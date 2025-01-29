@@ -39,11 +39,7 @@ class OTPVerification(models.Model):
     otp = models.CharField(max_length=4, validators=[validate_4_digit_otp])
     created_at = models.DateTimeField(auto_now_add=True)
     is_verified = models.BooleanField(default=False)
-    last_requested_at = models.DateTimeField(auto_now=True) 
+   
 
     def __str__(self):
         return f"OTP for {self.phone_number.phone_number}"
-
-
-
-  
