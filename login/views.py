@@ -75,11 +75,6 @@ def login_user(request):
     else:
         # return render(request,"registration/log.html")
         return JsonResponse({"error": "Invalid request method."}, status=405) 
-@login_required
-
-def User_page(request):
-    return render(request,"registration/sucessful.html")
-
 
 
 class UserViewSet(viewsets.ModelViewSet):
